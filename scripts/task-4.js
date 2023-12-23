@@ -1,4 +1,9 @@
 
+
+const maxAssessmen = 12;
+const minAssessmen = 0;
+
+
 function Student(name, surname){
     this.name = name;
     this.surname =  surname;
@@ -17,7 +22,7 @@ Student.prototype.addSubject = function(subjectName, ...assessment){
 Student.prototype.addAssessments = function(subjectName, assessments){
 
     for(assessment of assessments){
-        if(typeof assessment === 'number'){
+        if(typeof assessment === 'number' && assessment >= minAssessmen && assessment <= maxAssessmen){
             this.subjects[subjectName].push(assessment);
         }
 
@@ -41,6 +46,16 @@ Student.prototype.removeAssessments = function(subjectName, ...assessmentsIndex)
     }
 };
 
+Student.prototype.calcAvgSubjecеAssessments = function(subject){
+
+    if(subject.length === 0){
+        return undefined;
+    }
+
+    const assessments = this.subjects[subject];
+    return assessments.reduce((a,b)=>a+b, 0) / assessments.length;
+}
+
 Student.prototype.avgSubjecеAssessments = function(...subjects){
     let assessments;
     let result = [];
@@ -50,24 +65,39 @@ Student.prototype.avgSubjecеAssessments = function(...subjects){
     }
 
     for(subject of subjects){
-        assessments = this.subjects[subject];
-        
-        if(assessments === undefined){
+
+        if(!this.subjects.hasOwnProperty(subject)){
             continue;
         }
-    
-        result.push(({Subject: subject.replace("\'", ""), Avg_assessment:assessments.reduce((a,b)=>a+b, 0)/assessments.length}));
+
+        assessments = this.subjects[subject];
         
-        assessments = undefined;
+        result.push(({Subject: subject.replace("\'", ""), Avg_assessment:this.calcAvgSubjecеAssessments(subject)}));
     }
 
     return result;
 };
 
+
+Student.prototype.statStr = function(){
+    let result = "";
+
+    result += `Name: ${this.name}\n`;
+    result += `Surname: ${this.surname}\n\n`;
+    
+    Object.keys(this.subjects).forEach(subject => {
+        result += `${subject}: ${this.subjects[subject].join(", ")}\n`;
+        result += `Avg ${subject}: ${this.calcAvgSubjecеAssessments(subject)}\n\n`;
+    });
+
+    return result;
+}
+
 const student = new Student("name_1", "surname_1");
 
 student.addSubject("Math", 12,10,9,11,10);
 student.addSubject("Math", [4,12,9,6,3,10]);
+student.addSubject("Math", 10000,-1);
 
 student.addSubject("Informatic", 9,10,10,11,10);
 student.addSubject("Geography", 1,2,3,4,5);
@@ -82,3 +112,5 @@ console.table(student.subjects);
 
 student.removeSubject("Geography");
 console.table(student.subjects);
+
+console.table(student.statStr());
